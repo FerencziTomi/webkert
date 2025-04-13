@@ -1,0 +1,43 @@
+<mat-toolbar>
+    <button mat-button [routerLink]="['/']" routerLinkActive="router-link-active" routerLinkActive="router-link-active">
+        <mat-icon><span class="material-symbols-outlined">home</span></mat-icon>Főoldal
+    </button>
+    <button mat-button [routerLink]="['/paintings']" routerLinkActive="router-link-active">
+        <mat-icon><span class="material-symbols-outlined">brush</span></mat-icon>Festmények
+    </button>
+    <button mat-button [routerLink]="['/drawings']" routerLinkActive="router-link-active">
+        <mat-icon><span class="material-symbols-outlined">draw</span></mat-icon>Rajzok
+    </button>
+    <button mat-button [routerLink]="['/statues']" routerLinkActive="router-link-active">
+        <mat-icon><span class="material-symbols-outlined">sports_martial_arts</span></mat-icon>Szobrok
+    </button>
+    <button mat-button [routerLink]="['/artists']" routerLinkActive="router-link-active">
+        <mat-icon><span class="material-symbols-outlined">person</span></mat-icon>Művészek
+    </button>
+    <span class="profile"></span>
+    @if (isLoggedIn) {
+    <button mat-button routerLink="/profile" routerLinkActive="router-link-active" style="text-align: center;">
+        <mat-icon><span class="material-symbols-outlined">account_circle</span></mat-icon>
+    </button>
+    <button mat-button routerLink="/card" routerLinkActive="router-link-active" style="text-align: center;">
+        <mat-icon><span class="material-symbols-outlined">shopping_cart</span></mat-icon>
+    </button>
+    <button mat-button (click)="logout()">
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Kijelentkezés</span>
+    </button>
+    }
+    @if (!isLoggedIn) {
+    <button mat-button routerLink="/login" routerLinkActive="active-list-item">
+        <mat-icon matListItemIcon><span class="material-symbols-outlined">
+            meeting_room
+            </span></mat-icon>
+        <span matListItemTitle>Bejelentkezés</span>
+    </button>
+    <button mat-button routerLink="/signup" routerLinkActive="active-list-item">
+        <mat-icon matListItemIcon><span class="material-symbols-outlined">login</span></mat-icon>
+        <span matListItemTitle>Regisztráció</span>
+    </button>
+    }
+
+</mat-toolbar>

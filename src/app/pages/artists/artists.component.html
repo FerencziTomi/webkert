@@ -1,0 +1,10 @@
+@if (artists.length == 0) {
+<h2>Nincs megjeleníthető adat</h2>
+}
+@else {
+@for (a of artists; track a) {
+<mat-list>
+  <mat-list-item>{{ a.name }}, {{ a.birth | date}}, {{ a.place }}, {{ a.works_in }}</mat-list-item>
+</mat-list>
+}
+}

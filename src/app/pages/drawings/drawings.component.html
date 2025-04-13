@@ -1,0 +1,10 @@
+@if (drawings.length == 0) {
+<h2>Nincs megjeleníthető adat</h2>
+}
+@else {
+@for (d of drawings; track d) {
+<mat-list>
+  <mat-list-item>{{ d.name }}, {{ d.drawer }}, {{ d.year }}, {{ d.place }}, {{ d.price }}$</mat-list-item>
+</mat-list>
+}
+}

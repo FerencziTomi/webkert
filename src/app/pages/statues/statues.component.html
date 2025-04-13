@@ -1,0 +1,11 @@
+@if (statues.length == 0) {
+<h2>Nincs megjeleníthető adat</h2>
+}
+@else {
+@for (s of statues; track s) {
+<mat-list>
+  <mat-list-item>{{ s.name }}, {{ s.sculptor }}, {{ s.height }}, {{ s.weight }}, {{ s.place }}, {{ s.year }}, {{ s.price
+    }}$</mat-list-item>
+</mat-list>
+}
+}

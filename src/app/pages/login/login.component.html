@@ -1,0 +1,19 @@
+<form (ngSubmit)="login()">
+    <mat-form-field>
+        <mat-label>E-mail cím:</mat-label>
+        <input matInput type="email" [formControl]="email">
+    </mat-form-field><br>
+    <mat-form-field>
+        <mat-label>Jelszó:</mat-label>
+        <input matInput type="password" [formControl]="password">
+    </mat-form-field><br>
+
+    @if (loginError) {
+        <div class="error-message">
+          {{ loginError }}
+        </div>
+      }
+
+    <button mat-button color="primary" type="submit">Bejelentkezés</button><br>
+    Még nem regisztrált?<a [routerLink]="['/signup']">Regisztráció</a>
+</form>

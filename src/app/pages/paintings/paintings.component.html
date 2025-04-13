@@ -1,0 +1,14 @@
+@if (paintings.length == 0) {
+<h2>Nincs megjeleníthető adat</h2>
+}
+@else {
+@for (p of paintings; track p) {
+<mat-list>
+  <mat-list-item>{{ p.name }}, {{ p.painter }}, {{ p.year }}, {{ p.place }}, {{ p.price }}$
+    @if (isLogged){
+      <button mat-button (click)="addPaintingToCart(p.name)">Kosárhoz adás</button>
+    }
+  </mat-list-item>
+</mat-list>
+}
+}

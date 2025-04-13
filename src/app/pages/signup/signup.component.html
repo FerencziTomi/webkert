@@ -1,0 +1,27 @@
+<form [formGroup]="signUpForm" (ngSubmit)="signup()">
+    <mat-form-field>
+        <mat-label>Név:</mat-label>
+        <input matInput type="text" formControlName="name">
+    </mat-form-field><br>
+    <mat-form-field>
+        <mat-label>E-mail cím:</mat-label>
+        <input matInput type="email" formControlName="email">
+    </mat-form-field><br>
+    <mat-form-field>
+        <mat-label>Jelszó:</mat-label>
+        <input matInput type="password" formControlName="password">
+    </mat-form-field><br>
+    <mat-form-field>
+        <mat-label>Jelszó ismét:</mat-label>
+        <input matInput type="password" formControlName="rePassword">
+    </mat-form-field><br>
+    <mat-form-field>
+        <mat-label>Telefon:</mat-label>
+        <input matInput type="text" formControlName="phone">
+    </mat-form-field><br><mat-form-field>
+        <mat-label>Lakcím:</mat-label>
+        <input matInput type="text" formControlName="place">
+    </mat-form-field><br>
+    <button mat-button color="primary" type="submit">Register</button><br>
+    Van már fiókja?<a [routerLink]="['/login']">Jelentkezzen be!</a>
+</form>
