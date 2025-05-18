@@ -1,14 +1,37 @@
+@if (isLogged) {
+  <div class="actions">
+    <button mat-raised-button color="primary" (click)="openAddDialog()">Új festmény</button>
+  </div>
+}
+
 @if (paintings.length == 0) {
-<h2>Nincs megjeleníthető adat</h2>
-}
-@else {
-@for (p of paintings; track p) {
-<mat-list>
-  <mat-list-item>{{ p.name }}, {{ p.painter }}, {{ p.year }}, {{ p.place }}, {{ p.price }}$
-    @if (isLogged){
-      <button mat-button (click)="addPaintingToCart(p.name)">Kosárhoz adás</button>
+  <h2>Nincs megjeleníthető adat</h2>
+} @else {
+  <mat-list>
+    @for (p of paintings; track p.id) {
+      <mat-list-item>
+        <div class="painting-item">
+          <div class="painting-info">
+            <span class="painting-name">{{ p.name }}</span>,
+            <span class="painter">{{ p.painter }}</span>,
+            <span class="year">{{ p.year === 'unknown' ? 'ismeretlen' : p.year }}</span>,
+            <span class="place">{{ p.place }}</span>,
+            <span class="price">{{ p.price }}$</span>
+          </div>
+          @if (isLogged) {
+            <div class="painting-actions">
+              <button mat-icon-button color="primary" (click)="openEditDialog(p)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deletePainting(p.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button mat-button (click)="addPaintingToCart(p.name)">Kosárhoz adás</button>
+            </div>
+          }
+        </div>
+      </mat-list-item>
+      <mat-divider></mat-divider>
     }
-  </mat-list-item>
-</mat-list>
-}
+  </mat-list>
 }

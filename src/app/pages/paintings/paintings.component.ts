@@ -3,43 +3,87 @@ import { MatListModule } from '@angular/material/list';
 import { Painting } from '../../shared/models/painting';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-
+import { PaintingsService } from '../../shared/services/paintings.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { PaintingDialogComponent } from './painting-dialog/painting-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-paintings',
-  imports: [MatListModule,
-    CommonModule,
-    MatButtonModule
-  ],
+  standalone: true,
+  imports: [MatListModule, CommonModule, MatButtonModule, MatDialogModule, MatIconModule],
   templateUrl: './paintings.component.html',
-  styleUrl: './paintings.component.scss'
+  styleUrls: ['./paintings.component.scss']
 })
 export class PaintingsComponent {
-  paintings: Painting[] = [
-    { id: 1, name: "Starry Night", painter: "Vincent van Gogh", year: 1889, place: "Saint-Rémy-de-Provence, France", price: 1000 },
-    { id: 2, name: "Mona Lisa", painter: "Leonardo da Vinci", year: 1503, place: "Florence, Italy", price: 8500 },
-    { id: 3, name: "The Scream", painter: "Edvard Munch", year: 1893, place: "Oslo, Norway", price: 7200 },
-    { id: 4, name: "Guernica", painter: "Pablo Picasso", year: 1937, place: "Madrid, Spain", price: 9300 },
-    { id: 5, name: "The Persistence of Memory", painter: "Salvador Dalí", year: 1931, place: "New York, USA", price: 4700 },
-    { id: 6, name: "Girl with a Pearl Earring", painter: "Johannes Vermeer", year: 1665, place: "The Hague, Netherlands", price: 5800 },
-    { id: 7, name: "The Night Watch", painter: "Rembrandt", year: 1642, place: "Amsterdam, Netherlands", price: 6200 },
-    { id: 8, name: "American Gothic", painter: "Grant Wood", year: 1930, place: "Chicago, USA", price: 3500 },
-    { id: 9, name: "The Kiss", painter: "Gustav Klimt", year: 1907, place: "Vienna, Austria", price: 6900 },
-    { id: 10, name: "Composition VII", painter: "Wassily Kandinsky", year: 1913, place: "Moscow, Russia", price: 4100 }
-  ];
+  paintings: Painting[] = [];
+  isLogged = false;
 
-  isLogged=false;
-  @Input() paintingName ='asd';
+  @Input() paintingName = '';
   @Output() addingPainting = new EventEmitter<string>();
 
-  constructor(){}
+  constructor(
+    private paintingsService: PaintingsService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) { }
 
-  ngOnInit(){
-    this.isLogged = localStorage.getItem('isLoggedIn') === 'true'
+  ngOnInit() {
+    this.isLogged = localStorage.getItem('isLoggedIn') === 'true';
+    this.loadPaintings();
   }
 
-  addPaintingToCart(pname: string){
-    this.paintingName=pname;
-    this.addingPainting.emit(pname)
+  loadPaintings() {
+    this.paintingsService.getAll().subscribe({
+      next: (paintings) => this.paintings = paintings,
+      error: (err) => console.error('Error loading paintings:', err)
+    });
+  }
+
+  addPaintingToCart(pname: string) {
+    this.paintingName = pname;
+    this.addingPainting.emit(pname);
+    this.snackBar.open(`${pname} hozzáadva a kosárhoz`, 'Bezár', { duration: 3000 });
+  }
+
+  openAddDialog(): void {
+    const dialogRef = this.dialog.open(PaintingDialogComponent, {
+      width: '500px',
+      data: { isEdit: false }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paintingsService.create(result).then(() => {
+          this.snackBar.open('Festmény hozzáadva', 'Bezár', { duration: 3000 });
+        });
+      }
+    });
+  }
+
+  openEditDialog(painting: Painting): void {
+    const dialogRef = this.dialog.open(PaintingDialogComponent, {
+      width: '500px',
+      data: { isEdit: true, painting }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paintingsService.update(result).then(() => {
+          this.snackBar.open('Festmény frissítve', 'Bezár', { duration: 3000 });
+        });
+      }
+    });
+  }
+
+  deletePainting(id: string): void {
+    if (confirm('Biztosan törölni szeretnéd ezt a festményt?')) {
+      this.paintingsService.delete(id).then(() => {
+        this.snackBar.open('Festmény törölve', 'Bezár', { duration: 3000 });
+      });
+    }
   }
 }

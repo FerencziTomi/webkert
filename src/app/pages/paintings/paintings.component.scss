@@ -1,0 +1,30 @@
+.actions {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.painting-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.painting-info {
+  flex: 1;
+}
+
+.painting-name {
+  font-weight: bold;
+}
+
+.painting-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+mat-divider {
+  margin: 5px 0;
+}

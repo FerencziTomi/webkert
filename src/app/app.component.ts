@@ -5,6 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
+import { AuthService } from './shared/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -21,20 +23,24 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AppComponent implements OnInit{
   title = 'da-vinci-line';
-  isLoggedIn = false;
+  isLoggedIn=false;
+  private authSubscription?: Subscription;
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.checkLogin();
+    this.authSubscription = this.authService.currentUser.subscribe(user => {
+      this.isLoggedIn = !!user;
+      localStorage.setItem('isLoggedIn', this.isLoggedIn ? 'true' : 'false');
+    });
   }
 
-  checkLogin(): void {
-    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  ngOnDestroy(): void {
+    this.authSubscription?.unsubscribe();
   }
 
   logout(): void {
-    localStorage.setItem('isLoggedIn', 'false');
-    this.isLoggedIn = false;
-    window.location.href = '/';
+    this.authService.signOut();
   }
 
   onToggleSidenav(sidenav: MatSidenav){

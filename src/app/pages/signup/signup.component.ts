@@ -6,6 +6,8 @@ import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
 import { User } from '../../shared/models/user';
+import { AuthService } from '../../shared/services/auth.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-signup',
@@ -14,7 +16,8 @@ import { User } from '../../shared/models/user';
     MatInputModule,
     RouterLink,
     MatButtonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss'
@@ -23,46 +26,74 @@ export class SignupComponent {
   options = ['Művész', 'Vevő', 'Mindkettő'];
 
   signUpForm = new FormGroup({
-    name: new FormControl('', [Validators.required, Validators.maxLength(25)]),
+    name: new FormControl('', [Validators.required, Validators.minLength(2)]),
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(6)]),
     rePassword: new FormControl('', [Validators.required]),
-    phone: new FormControl('', [Validators.required, Validators.maxLength(11)]),
-    place: new FormControl('', [Validators.required, Validators.maxLength(40)]),
+    phone: new FormControl(''),
+    place: new FormControl(''),
   });
-  error="";
-  
-  constructor(private router: Router) {}
+
+  isLoading = false;
+  showForm = true;
+  signupError = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   signup(): void {
     if (this.signUpForm.invalid) {
-      this.error = 'Please correct the form errors before submitting.';
+      this.signupError = 'Please correct any errors on the form before submitting.';
       return;
     }
 
-    const password = this.signUpForm.get('password');
-    const rePassword = this.signUpForm.get('rePassword');
-
-    if (password?.value !== rePassword?.value) {
+    const password = this.signUpForm.get('password')?.value;
+    const rePassword = this.signUpForm.get('rePassword')?.value;
+    
+    if (password !== rePassword) {
+      this.signupError = 'The passwords do not match.';
       return;
     }
 
-    //this.isLoading = true;
-    //this.showForm = false;
+    this.isLoading = true;
+    this.showForm = false;
 
-    const newUser: User = {
+    const userData: Partial<User> = {
       name: this.signUpForm.value.name || '',
       email: this.signUpForm.value.email || '',
-      password: this.signUpForm.value.password || '',
       phone: this.signUpForm.value.phone || '',
-      place: this.signUpForm.value.place || ''
+      place: this.signUpForm.value.email || '',
     };
 
-    console.log('New user:', newUser);
-    console.log('Form value:', this.signUpForm.value);
+    const email = this.signUpForm.value.email || '';
+    const pw = this.signUpForm.value.password || '';
 
-    setTimeout(() => {
-      this.router.navigateByUrl('/');
-    }, 2000);
+    this.authService.signUp(email, pw, userData)
+      .then(userCredential => {
+        console.log('Registration succesful:', userCredential.user);
+        this.authService.updateLoginStatus(true);
+        this.router.navigateByUrl('/home');
+      })
+      .catch(error => {
+        console.error('Regisztrációs hiba:', error);
+        this.isLoading = false;
+        this.showForm = true;
+        
+        switch(error.code) {
+          case 'auth/email-already-in-use':
+            this.signupError = 'This email already in use.';
+            break;
+          case 'auth/invalid-email':
+            this.signupError = 'Invalid email.';
+            break;
+          case 'auth/weak-password':
+            this.signupError = 'The password is too weak. Use at least 6 characters.';
+            break;
+          default:
+            this.signupError = 'An error has occurred during registration. Please try again later.';
+        }
+      });
   }
 }
