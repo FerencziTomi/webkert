@@ -143,7 +143,7 @@ export class PaintingsComponent {
     this.isLoading = true;
     const sub = this.paintingService.getPaintingsWherePlaceSzeged().subscribe({
       next: (data) => {
-        this.paintingsWithPlaceSzeged = data;
+        this.paintingsWithPlaceSzeged = data; //asd
         this.isLoading = false;
       },
       error: (err) => {
