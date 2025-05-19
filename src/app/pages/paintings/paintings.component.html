@@ -1,37 +1,298 @@
-@if (isLogged) {
-  <div class="actions">
-    <button mat-raised-button color="primary" (click)="openAddDialog()">Új festmény</button>
-  </div>
-}
+<mat-card class="painting-card">
+  <mat-card-header>
+    <mat-card-title>Paintings Management</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="paintingForm" (ngSubmit)="savePainting()" class="painting-form">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="painting-input">
+          <mat-label>Painting Name</mat-label>
+          <input matInput formControlName="name" placeholder="Enter painting name...">
+          @if (paintingForm.get('name')?.invalid && paintingForm.get('name')?.touched) {
+          <mat-error>Name must be at least 3 characters</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="painter-input">
+          <mat-label>Painter</mat-label>
+          <input matInput formControlName="painter" placeholder="Enter painter name...">
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="year-input">
+          <mat-label>Year</mat-label>
+          <input matInput type="number" formControlName="year" placeholder="Enter creation year...">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="place-input">
+          <mat-label>Place</mat-label>
+          <input matInput formControlName="place" placeholder="Enter creation place...">
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="price-input">
+          <mat-label>Price/Description</mat-label>
+          <input matInput formControlName="price" placeholder="Enter price or description...">
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isLoading">
+          @if (isLoading) {
+          <mat-spinner diameter="24"></mat-spinner>
+          } @else if (editingPaintingId) {
+          Update Painting
+          } @else {
+          Add Painting
+          }
+        </button>
+      </div>
+    </form>
 
-@if (paintings.length == 0) {
-  <h2>Nincs megjeleníthető adat</h2>
-} @else {
-  <mat-list>
-    @for (p of paintings; track p.id) {
-      <mat-list-item>
-        <div class="painting-item">
-          <div class="painting-info">
-            <span class="painting-name">{{ p.name }}</span>,
-            <span class="painter">{{ p.painter }}</span>,
-            <span class="year">{{ p.year === 'unknown' ? 'ismeretlen' : p.year }}</span>,
-            <span class="place">{{ p.place }}</span>,
-            <span class="price">{{ p.price }}$</span>
+    <mat-tab-group>
+      <mat-tab label="All Paintings">
+        <div class="table-container">
+          @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading paintings...</p>
           </div>
-          @if (isLogged) {
-            <div class="painting-actions">
-              <button mat-icon-button color="primary" (click)="openEditDialog(p)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deletePainting(p.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-              <button mat-button (click)="addPaintingToCart(p.name)">Kosárhoz adás</button>
-            </div>
+          } @else if (paintings.length === 0) {
+          <div class="empty-state">
+            <mat-icon>palette</mat-icon>
+            <p>No paintings available. Add your first painting!</p>
+          </div>
+          } @else {
+          <table mat-table [dataSource]="paintings" class="painting-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="painter">
+              <th mat-header-cell *matHeaderCellDef>Painter</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.painter }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Year</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.year }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="place">
+              <th mat-header-cell *matHeaderCellDef>Place</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.place }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.price }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let painting">
+                <button mat-icon-button color="primary" (click)="editPainting(painting)" aria-label="Edit painting">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deletePainting(painting.id)" aria-label="Delete painting">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
           }
         </div>
-      </mat-list-item>
-      <mat-divider></mat-divider>
-    }
-  </mat-list>
-}
+      </mat-tab>
+
+      <mat-tab label="By Painter">
+        <div class="table-container">
+          @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          } @else if (paintingsByPainter.length === 0) {
+          <div class="empty-state">
+            <mat-icon>palette</mat-icon>
+            <p>No paintings available</p>
+          </div>
+          } @else {
+          <table mat-table [dataSource]="paintingsByPainter" class="painting-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="painter">
+              <th mat-header-cell *matHeaderCellDef>Painter</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.painter }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="place">
+              <th mat-header-cell *matHeaderCellDef>Place</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.place }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Year</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.year }}
+              </td>
+            </ng-container>
+            
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.price }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let painting">
+                <button mat-icon-button color="primary" (click)="editPainting(painting)" aria-label="Edit painting">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deletePainting(painting.id)" aria-label="Delete painting">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="specialDisplayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: specialDisplayedColumns;"></tr>
+          </table>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="By year">
+        <div class="table-container">
+          @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading paintings...</p>
+          </div>
+          } @else if (paintingsByYear.length === 0) {
+          <div class="empty-state">
+            <mat-icon>palette</mat-icon>
+            <p>No paintings available. Add your first painting!</p>
+          </div>
+          } @else {
+          <table mat-table [dataSource]="paintingsByYear" class="painting-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="painter">
+              <th mat-header-cell *matHeaderCellDef>Painter</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.painter }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Year</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.year }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="place">
+              <th mat-header-cell *matHeaderCellDef>Place</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.place }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.price }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let painting">
+                <button mat-icon-button color="primary" (click)="editPainting(painting)" aria-label="Edit painting">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deletePainting(painting.id)" aria-label="Delete painting">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Szeged">
+        <div class="table-container">
+          @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading paintings...</p>
+          </div>
+          } @else if (paintingsWithPlaceSzeged.length === 0) {
+          <div class="empty-state">
+            <mat-icon>palette</mat-icon>
+            <p>No paintings available. Add your first painting!</p>
+          </div>
+          } @else {
+          <table mat-table [dataSource]="paintingsWithPlaceSzeged" class="painting-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="painter">
+              <th mat-header-cell *matHeaderCellDef>Painter</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.painter }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Year</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.year }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="place">
+              <th mat-header-cell *matHeaderCellDef>Place</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.place }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let painting">
+                {{ painting.price }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let painting">
+                <button mat-icon-button color="primary" (click)="editPainting(painting)" aria-label="Edit painting">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deletePainting(painting.id)" aria-label="Delete painting">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          }
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

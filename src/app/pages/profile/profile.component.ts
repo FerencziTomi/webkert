@@ -22,4 +22,5 @@ import {MatSelectModule} from '@angular/material/select';
 export class ProfileComponent {
   readonly panelOpenState = signal(false);
   chosen: 'light' | 'dark' | 'colorful' = 'light';
+  
 }
